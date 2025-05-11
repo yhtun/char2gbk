@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GBK编码转换器（逐字对应版）</title>
+    <style>
+        body {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+    </style>
+    <script src="./dist/gbk.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>GBK编码转换器</h2>
+        <input type="text" id="inputText" placeholder="输入要转换的内容">
+        <button onclick="convert()">转换</button>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        var inputText = document.getElementById('inputText');
+        var output = document.getElementById('output');
+
+        function arr2hex(arr) {
+            return arr.map(b => 
+                b.toString(16).padStart(2, '0').toUpperCase()
+            ).join(' ');
+        }
+
+        function convert() {
+            const input = inputText.value.trim();
+            if (!input) {
+                alert("请输入内容");
+                return;
+            }
+            
+            let result = [];
+            for (let char of input) {
+                try {
+                    const bytes = GBK.encode(char);
+                    result.push(`${char}: ${arr2hex(bytes)}`);
+                } catch(e) {
+                    result.push(`${char}: ?? (编码错误)`);
+                }
+            }
+            
+            output.innerHTML = result.join('<br>');
+        }
+
+        inputText.addEventListener('keypress', e => {
+            if (e.key === 'Enter') convert();
+        });
+    </script>
+</body>
+</html>
