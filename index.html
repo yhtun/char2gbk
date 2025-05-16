@@ -2,80 +2,193 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>GBK编码转换器（逐字对应版）</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>GBK编码转换器（增强版）</title>
+    <link rel="icon" type="image/x-icon" href="https://ecp.sgcc.com.cn/ecp2.0//portal/favicon.ico">
     <style>
+        :root {
+            --primary-color: #004f4b;
+            --accent-color: #006f6b;
+            --text-color: #005f5b;
+            --bg-color: #006f6b;
+        }
+
         body {
-            max-width: 600px;
-            margin: 20px auto;
+            margin: 0;
             padding: 20px;
-            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;            
+/*            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;*/
+            background: linear-gradient(#008f8b,whitesmoke);
+            color: var(--text-color);
         }
+
         .container {
-            border: 1px solid #ccc;
-            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: rgba(255,255,255, 0.3);
             border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,111,107, 0.8);
+            text-align: center;
         }
+
+        h2 {
+            margin: 0 0 20px; /* 减少底部间距 */
+            color: var(--primary-color);
+            font-size: 1.6rem; /* 适当缩小标题 */
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            max-width: 400px;  /* 新增最大宽度 */
+            margin: 0 auto 15px; /* 调整间距 */
+        }
+
         input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
+            width: 90%;
+            padding: 10px 12px; /* 减少内边距 */
+            border: 2px solid #ddd;
+            border-radius: 6px; /* 缩小圆角 */
+            font-size: 0.95rem;
+            color: #006f6b;
+            transition: border-color 0.3s;
         }
+
         button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            max-width: 200px;  /* 限制按钮宽度 */
+            padding: 10px;     /* 减少内边距 */
+            font-size: 0.95rem;
+            background: #006f6b;
+            color: whitesmoke;
+            border-radius: 5px;
         }
+
         #output {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 4px;
-            white-space: pre-wrap;
+            text-align: left;
+            margin-top: 15px;
+            padding: 10px !important;
+            line-height: 1.4 !important;
+            border-radius: 5px;
+        }
+
+        .char-block {
+            display: inline-block;
+            margin: 2px !important;
+            padding: 4px 8px !important;
+            line-height: 1.3 !important;
+            min-height: auto !important;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 15px;
+            }
+
+            .input-group {
+                max-width: 100%; /* 移动端全宽度 */
+            }
+
+            .char-block {
+                font-size: 0.95em; /* 更小字号 */
+                padding: 3px 6px !important;
+            }
+
+            button {
+                max-width: 100%; /* 按钮全宽 */
+                padding: 12px;
+            }
         }
     </style>
     <script src="./dist/gbk.js"></script>
 </head>
 <body>
+    <!-- <img src="https://ecp.sgcc.com.cn/ecp2.0//portal/logo.f16c4642db4bab0d3ce0.png"> -->
     <div class="container">
         <h2>GBK编码转换器</h2>
-        <input type="text" id="inputText" placeholder="输入要转换的内容">
-        <button onclick="convert()">转换</button>
+        <div class="input-group">
+            <input 
+            type="text" 
+            id="inputText" 
+            placeholder="输入文字（支持中、英、字符）"
+            autocomplete="off"
+            >
+        </div>
+        <button onclick="convert()">立即转换</button>
         <div id="output"></div>
     </div>
 
     <script>
-        var inputText = document.getElementById('inputText');
-        var output = document.getElementById('output');
+        const inputText = document.getElementById('inputText');
+        const output = document.getElementById('output');
 
-        function arr2hex(arr) {
-            return arr.map(b => 
-                b.toString(16).padStart(2, '0').toUpperCase()
+        // 十六进制格式化（支持单字符）
+        const arr2hex = arr => arr.map(b => 
+            b.toString(16).padStart(2, '0').toUpperCase()
             ).join(' ');
-        }
 
+        // 转换核心逻辑
         function convert() {
             const input = inputText.value.trim();
+            
             if (!input) {
-                alert("请输入内容");
+                showMessage('⚠️ 请输入要转换的内容', 'warning');
                 return;
             }
-            
-            let result = [];
-            for (let char of input) {
+
+            const result = [];
+            for (const char of input) {
                 try {
                     const bytes = GBK.encode(char);
-                    result.push(`${char}: ${arr2hex(bytes)}`);
+                    result.push(
+                        `<span class="char-block">
+                            <strong>${escapeHtml(char)}</strong>: 
+                            <code>${arr2hex(bytes)}</code>
+                        </span></br>`
+                        );
                 } catch(e) {
-                    result.push(`${char}: ?? (编码错误)`);
+                    result.push(
+                        `<span class="char-block" style="background:#ffeef0">
+                            ${escapeHtml(char)}: <code>??</code>
+                        </span>`
+                        );
                 }
             }
             
-            output.innerHTML = result.join('<br>');
+            output.innerHTML = result.join('');
+            output.style.background = "rgba(255,255,255, 0.3)";
+            addCopyFeature();
         }
 
+        // 安全HTML转义
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, m => 
+                ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m])
+                );
+        }
+
+        // 显示提示信息
+        function showMessage(msg, type = 'info') {
+            output.innerHTML = `<div class="message ${type}">${msg}</div>`;
+            setTimeout(() => output.innerHTML = '', 2000);
+        }
+
+        // 添加点击复制功能
+        function addCopyFeature() {
+            output.querySelectorAll('.char-block').forEach(el => {
+                el.addEventListener('click', () => {
+                    const text = el.innerText.split(': ')[1];
+                    navigator.clipboard.writeText(text).then(() => {
+                        el.style.background = '#e8f4ff';
+                        setTimeout(() => el.style.background = '', 800);
+                    });
+                });
+            });
+        }
+
+        // 回车键支持
         inputText.addEventListener('keypress', e => {
             if (e.key === 'Enter') convert();
         });
